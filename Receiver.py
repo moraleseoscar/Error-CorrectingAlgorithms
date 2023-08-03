@@ -1,4 +1,58 @@
-d=input('Enter the hamming code received: ')
+
+def xor_binary_strings(str1, str2):
+    if len(str1) != len(str2):
+        print("Las cadenas deben tener la misma longitud para realizar la operación XOR.")
+    result = ""
+    for bit1, bit2 in zip(str1, str2):
+        xor_result = int(bit1) ^ int(bit2)
+        result += str(xor_result)
+    return list(result)
+
+def crc_receptor(trama):
+    # print(len(trama))
+    trama_lista = list(trama)
+    crc32   = "100000100110000010001110110110111"
+    # crc32 = "1001"
+    
+    # Inicia logica para CRC 32
+    
+    A = trama_lista[:33]
+    trama_lista = trama_lista[33:]
+    resultado = xor_binary_strings(''.join(A),crc32)
+
+    # print("Trama ", trama_lista)
+    # print("resultado ", resultado)
+
+    while len(trama_lista) > 0:
+        if resultado[0] == '0':
+            resultado.pop(0)
+            agregar = trama_lista.pop(0)
+            resultado.append(agregar)
+        if resultado[0] == '1':
+            resultado = xor_binary_strings(resultado,crc32)
+    
+    # print(''.join(resultado))
+
+    respuesta = True
+
+    for x in resultado:
+        if x != '0':
+            respuesta = False
+    
+    mensaje_original = list(trama)
+    
+    if respuesta:
+        for x in range(0,32):
+            mensaje_original.pop()
+    else:
+        mensaje_original = 'Se encontraron problemas'
+    
+    return mensaje_original
+
+
+
+print('Enter the hamming code received')
+d=input()
 data=list(d)
 data.reverse()
 c,ch,j,r,error,h,parity_list,h_copy=0,0,0,0,0,[],[],[]
@@ -31,24 +85,23 @@ parity_list.reverse()
 error=sum(int(parity_list) * (2 ** i) for i, parity_list in enumerate(parity_list[::-1]))
 
 if((error)==0):
-    print('No hay error en la trama recibida')
-    data.reverse()
-    decoded_message = "".join(str(bit) for i, bit in enumerate(data) if i not in [2**k - 1 for k in range(len(data))])
-    print("Trama recibida: ", decoded_message)
+    print('There is no error in the hamming code received')
+
 elif((error)>=len(h_copy)):
-    print('No hay error para detectar')
-    data.reverse()
-    decoded_message = "".join(str(bit) for i, bit in enumerate(data) if i not in [2**k - 1 for k in range(len(data))])
-    print("Trama recibida: ", decoded_message)
+    print('Error cannot be detected')
+
 else:
-    print('Hay error en el bit ',error)
-    h_copy.reverse()
+    print('Error is in',error,'bit')
+
     if(h_copy[error-1]=='0'):
         h_copy[error-1]='1'
 
     elif(h_copy[error-1]=='1'):
         h_copy[error-1]='0'
-    print('Despues de correccion por Hamming:- ',int(''.join(map(str, h_copy))))
-    decoded_message = "".join(str(bit) for i, bit in enumerate(h_copy) if i not in [2**k - 1 for k in range(len(h_copy))])
-    print("Trama recibida: ", decoded_message)
+        print('After correction hamming code is:- ')
+    h_copy.reverse()
+    print(int(''.join(map(str, h_copy))))
 
+mensaje = input("Ingresa la trama: ")
+receptorr = crc_receptor(mensaje)
+print("Receptor CRC 32", ''.join(receptorr))
