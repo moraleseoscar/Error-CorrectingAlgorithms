@@ -12,13 +12,13 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
-public class SenderLab2 {
+public class SenderAutomatizado {
 
     public static void main(String[] args) {
         String hostname = "localhost";
         int port = 65432;
         Scanner scanner = new Scanner(System.in);
-        // Set<String> palabrasGeneradas = generarPalabras();
+        Set<String> palabrasGeneradas = generarPalabras();
         try {
             Socket socket = new Socket(hostname, port);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -27,31 +27,33 @@ public class SenderLab2 {
 
             // ! For x in range 10k
             
-            while(true){
-            // for (String palabra : palabrasGeneradas) {
+            System.out.println("\nOpciones:");
+            System.out.println("1. Hamming");
+            System.out.println("2. CRC-32\n");
+            System.out.print("Selecciona una opción: ");
+            int choice = scanner.nextInt();
+            System.out.println("\n¿ Desea la layer de ruido ?");
+            System.out.println("1. Si");
+            System.out.println("2. No\n");
+            System.out.print("Selecciona una opción: ");
+            int ruido_activo = scanner.nextInt();
+
+            // while(true){
+            for (String palabra : palabrasGeneradas) {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                     // Aca va toda la lógica con "palabra"
-                System.out.print("\nIngresa un texto: ");
-                String inputText = scanner.next();
-                // String inputText = palabra;
+                // System.out.print("\nIngresa un texto: ");
+                // String inputText = scanner.next();
+                String inputText = palabra;
                 // scanner.next();
                 // System.out.println("\nOpciones:");
                 // Conversión de texto a binario.
                 String binaryResult = textToBinary(inputText);
 
-                
-                System.out.println("\nOpciones:");
-                System.out.println("1. Hamming");
-                System.out.println("2. CRC-32\n");
-                System.out.print("Selecciona una opción: ");
-                int choice = scanner.nextInt();
-                // int choice = 1;
-                // int choice = 2;
-                // scanner.next();
                 System.out.print("\n");
                 switch (choice) {
                     case 1:
@@ -71,11 +73,6 @@ public class SenderLab2 {
                         default:
                         System.out.println("\n -- Opción no válida. -- ");
                     }
-                    System.out.println("\n¿ Desea la layer de ruido ?");
-                    System.out.println("1. Si");
-                    System.out.println("2. No\n");
-                    System.out.print("Selecciona una opción: ");
-                    int ruido_activo = scanner.nextInt();
                     if(ruido_activo == 1){
                         binaryResult = ApplyNoise(binaryResult);
                     }

@@ -59,7 +59,8 @@ def crc_receptor(trama):
         for x in range(0,32):
             mensaje_original.pop()
     else:
-        mensaje_original = 'Se encontraron problemas'
+        print('Se encontraron problemas')
+        mensaje_original = '010100110110010100100000011001010110111001100011011011110110111001110100011100100110000101110010011011110110111000100000011100000111001001101111011000100110110001100101011011010110000101110011'
     
     return mensaje_original
 
@@ -126,7 +127,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     with conn:
         while True:
             try:
-                print(f"Conexion Entrante del proceso {addr}")
+                print( "\n--------------------------------------------")
+                print(f"\n Conexion Entrante del proceso {addr}")
                 full_data = conn.recv(1024).decode("utf-8")
                 selections_and_messages = full_data.split("\n")
                 # print(selections_and_messages)
@@ -149,3 +151,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 print("Letra recibida:", binary_to_words(receptor), "\n")
             except:
                 break
+            
