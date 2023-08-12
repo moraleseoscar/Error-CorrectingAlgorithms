@@ -1,10 +1,11 @@
 
 import socket
+import csv
 
 #Variables para conexión y recibimiento de mensajes
 HOST = "127.0.0.1" # IP, capa de Red. 127.0.0.1 es localhost
 PORT = 65432 # Puerto, capa de Transporte
-
+nombre_archivo = "receiver.csv"
 
 #-------------------------------------Decodificador de Binario------------------------------------------
 
@@ -119,36 +120,41 @@ def hamming_receptor(d):
     return decoded_message
 
 #-------------------------------------Conexión Socket------------------------------------------
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    s.listen()
+with open(nombre_archivo, mode='w', newline='') as archivo_csv:
+    writer = csv.writer(archivo_csv)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
 
-    conn, addr = s.accept()
-    with conn:
-        while True:
-            try:
-                print( "\n--------------------------------------------")
-                print(f"\n Conexion Entrante del proceso {addr}")
-                full_data = conn.recv(1024).decode("utf-8")
-                selections_and_messages = full_data.split("\n")
-                # print(selections_and_messages)
-                selAlgorithm, message,_ = selections_and_messages
-                message = message.replace('\r','')
-                
-                print("\nTrama recibida: ", message) 
-                if(selAlgorithm == "1"):
-                    print("Algoritmo seleccionado: Hamming-Code 7,4") 
-                    # Mandamos trama a Hamming
-                    print("\nReceptor por Hamming:\n----------------------")
-                    receptor = hamming_receptor(message)
-                    print("Trama recibida:", receptor)
-                else:
-                    print("Algoritmo seleccionado: CRC-32") 
-                    # Mandamos trama a CRC
-                    print("\nReceptor por CRC32:\n----------------------")
-                    receptor = ''.join(crc_receptor(message))
-                    print(receptor, "\n")
-                print("Letra recibida:", binary_to_words(receptor), "\n")
-            except:
-                break
+        conn, addr = s.accept()
+        with conn:
+            while True:
+                try:
+                    print( "\n--------------------------------------------")
+                    print(f"\n Conexion Entrante del proceso {addr}")
+                    full_data = conn.recv(2048).decode("utf-8")
+                    selections_and_messages = full_data.split("\n")
+                    # print(selections_and_messages)
+                    selAlgorithm, message,_ = selections_and_messages
+                    message = message.replace('\r','')
+                    
+                    print("\nTrama recibida: ", message) 
+                    if(selAlgorithm == "1"):
+                        print("Algoritmo seleccionado: Hamming-Code 7,4") 
+                        # Mandamos trama a Hamming
+                        print("\nReceptor por Hamming:\n----------------------")
+                        receptor = hamming_receptor(message)
+                        # Abrir el archivo CSV en modo escritura
+                        print("Trama recibida:", receptor)
+                    else:
+                        print("Algoritmo seleccionado: CRC-32") 
+                        # Mandamos trama a CRC
+                        print("\nReceptor por CRC32:\n----------------------")
+                        receptor = ''.join(crc_receptor(message))
+                        print(receptor, "\n")
+                    palabra = binary_to_words(receptor)
+                    print("Letra recibida:", palabra, "\n")
+                    writer.writerow([receptor])
+                except:
+                    break
             

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.io.FileWriter;
 
 public class SenderAutomatizado {
 
@@ -26,7 +27,7 @@ public class SenderAutomatizado {
             BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
 
             // ! For x in range 10k
-            
+
             System.out.println("\nOpciones:");
             System.out.println("1. Hamming");
             System.out.println("2. CRC-32\n");
@@ -38,47 +39,42 @@ public class SenderAutomatizado {
             System.out.print("Selecciona una opción: ");
             int ruido_activo = scanner.nextInt();
 
-            // while(true){
-            for (String palabra : palabrasGeneradas) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                    // Aca va toda la lógica con "palabra"
-                // System.out.print("\nIngresa un texto: ");
-                // String inputText = scanner.next();
-                String inputText = palabra;
-                // scanner.next();
-                // System.out.println("\nOpciones:");
-                // Conversión de texto a binario.
-                String binaryResult = textToBinary(inputText);
-
-                System.out.print("\n");
-                switch (choice) {
-                    case 1:
-                        binaryResult = hamming(binaryResult);
-                        // Aquí podrías agregar la lógica para la codificación Hamming
-                        System.out.println("\n -- Opción Hamming seleccionada -- ");
-                        break;
+            try (FileWriter writer = new FileWriter("Sender.csv")) {
+                for (String palabra : palabrasGeneradas) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    String inputText = palabra;
+                    // Conversión de texto a binario.
+                    String binaryResult = textToBinary(inputText);
+                    writer.write(binaryResult + "\n");
+                    System.out.print("\n");
+                    switch (choice) {
+                        case 1:
+                            binaryResult = hamming(binaryResult);
+                            // Aquí podrías agregar la lógica para la codificación Hamming
+                            System.out.println("\n -- Opción Hamming seleccionada -- ");
+                            break;
                         case 2:
-                        binaryResult = crc_emisor(binaryResult);
-                        // Calcula el valor CRC-32 y muestra el resultado
-                        System.out.println("\n -- Opción CRC32 seleccionada -- ");
-                        break;
+                            binaryResult = crc_emisor(binaryResult);
+                            // Calcula el valor CRC-32 y muestra el resultado
+                            System.out.println("\n -- Opción CRC32 seleccionada -- ");
+                            break;
                         case 3:
-                        // Calcula el valor CRC-32 y muestra el resultado
-                        System.out.println("\n -- Gracias por usar signal 2! -- ");
-                        break;
+                            // Calcula el valor CRC-32 y muestra el resultado
+                            System.out.println("\n -- Gracias por usar signal 2! -- ");
+                            break;
                         default:
-                        System.out.println("\n -- Opción no válida. -- ");
+                            System.out.println("\n -- Opción no válida. -- ");
                     }
                     if(ruido_activo == 1){
                         binaryResult = ApplyNoise(binaryResult);
                     }
                     System.out.println("\nTexto:      " + inputText);
                     System.out.println("En binario: " + binaryResult);
-                    
+
                     // String message = consoleReader.readLine();
                     String resultado = String.valueOf(choice)+"\n"+binaryResult;
                     System.out.println("\n ---------------------------------------------\n");
@@ -87,10 +83,12 @@ public class SenderAutomatizado {
                     }
                     out.println(resultado);
                 }
-                
-            
-            socket.close();
-            consoleReader.close();
+                socket.close();
+                consoleReader.close();
+                System.out.println("Archivo CSV creado exitosamente.");
+            } catch (IOException e) {
+                System.err.println("Error al escribir en el archivo CSV: " + e.getMessage());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -134,7 +132,7 @@ public class SenderAutomatizado {
         Random random = new Random();
         char[] letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
-        while (palabrasGeneradas.size() < 100) { // Puedes ajustar la cantidad de palabras a generar
+        while (palabrasGeneradas.size() < 10000) { // Puedes ajustar la cantidad de palabras a generar
             StringBuilder palabra = new StringBuilder();
             int longitud = random.nextInt(4) + 1;
 
@@ -149,7 +147,7 @@ public class SenderAutomatizado {
         return palabrasGeneradas;
     }
 
-    
+
     public static String textToBinary(String text) {
         StringBuilder binaryStringBuilder = new StringBuilder();
         for (char c : text.toCharArray()) {
@@ -162,12 +160,12 @@ public class SenderAutomatizado {
         if (list1.size() != list2.size()) {
             throw new IllegalArgumentException("Las listas deben tener la misma longitud");
         }
-        
+
         List<String> result = new ArrayList<>();
         for (int i = 0; i < list1.size(); i++) {
             String bit1 = list1.get(i);
             String bit2 = list2.get(i);
-            
+
             if (bit1.equals("0") && bit2.equals("0")) {
                 result.add("0");
             } else if (bit1.equals("1") && bit2.equals("0")) {
@@ -180,16 +178,16 @@ public class SenderAutomatizado {
                 throw new IllegalArgumentException("Las listas deben contener solo caracteres '0' y '1'");
             }
         }
-        
+
         return result;
     }
     public static String concatenateStrings(List<String> strings) {
         StringBuilder stringBuilder = new StringBuilder();
-        
+
         for (String str : strings) {
             stringBuilder.append(str);
         }
-        
+
         return stringBuilder.toString();
     }
     public static String crc_emisor(String trama) {
@@ -212,11 +210,11 @@ public class SenderAutomatizado {
             trama_lista.add("0");
         }
 
-        
-        
+
+
         // ! Inicia procedimiento para CRC 32
-        
-        
+
+
         // * Se declara A
 
         List<String> A = new ArrayList<>();
@@ -224,19 +222,19 @@ public class SenderAutomatizado {
         for (int i = 0; i < limit; i++) {
             A.add(trama_lista.get(i));
         }
-        
-        // * Se actualiza trama 
-        
+
+        // * Se actualiza trama
+
         if (trama_lista.size() >= 33) {
             trama_lista.subList(0, 33).clear();
         } else {
             System.out.println("La lista no tiene suficientes elementos para eliminar 33.");
         }
-        
+
         // * Se realiza la operacion entre A y crc32
 
         List<String> resultado = xorLists(A, crc32);
-        
+
         // System.out.println("Trama inicial" + trama_lista);
         // System.out.println("Resultado inicial" + resultado);
 
@@ -271,11 +269,6 @@ public class SenderAutomatizado {
             respuesta.add(resultado.get(i));
         }
         String resultadoConcatenado = concatenateStrings(respuesta);
-        // System.out.println("asdfaf " + trama_lista.size());
-        // System.out.println("asdfaf " + A);
-        // System.out.println("asdfaf " + A.size());
-        // System.out.println("asdfaf " + crc32);
-        // System.out.println("asdfaf " + crc32.size());
 
         return resultadoConcatenado;
     }
@@ -340,5 +333,5 @@ public class SenderAutomatizado {
         String hString = concatenateStrings(A);
         return hString;
     }
-    
+
 }
